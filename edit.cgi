@@ -1,2 +1,5 @@
+#!/bin/sh
 
-cat webedit.html | sed -e '/__MD_SRC__/r $'
+MD=md/index.md
+
+cat template/webedit.html | sed -e "/__MD_SRC__/r $MD"
