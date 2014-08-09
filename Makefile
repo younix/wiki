@@ -3,7 +3,7 @@ mdfiles!=ls md/*.md
 HEADER=template/header.html
 FOOTER=template/footer.html
 
-MD!=ls md/*.md
+MD!=find md -name '*.md'
 HTML=${MD:.md=.html}
 
 all: ${HTML}
@@ -13,6 +13,7 @@ clean:
 .SUFFIXES: .md .html
 .md.html:
 	@echo "$< -> $@"
-	@cat ${HEADER} > $@
-	@smu $< >> $@
-	@cat ${FOOTER} >> $@
+	@cat ${HEADER} 		 > $@
+	@create_nav $< 		 >> $@
+	@markdown_py -o html5 $< >> $@
+	@cat ${FOOTER}		 >> $@
