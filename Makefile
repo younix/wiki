@@ -1,19 +1,27 @@
-mdfiles!=ls md/*.md
+CC=cc
+CFLAGS=-std=c99 -pedantic -Wall -Wextra
 
-HEADER=template/header.html
-FOOTER=template/footer.html
-
-MD!=find md -name '*.md'
-HTML=${MD:.md=.html}
-
-all: ${HTML}
-clean:
-	rm -f ${HTML}
-
+.PHONY: all install clean
 .SUFFIXES: .md .html
-.md.html:
-	@echo "$< -> $@"
-	@cat ${HEADER} 		 > $@
-	@create_nav $< 		 >> $@
-	@markdown_py -o html5 $< >> $@
-	@cat ${FOOTER}		 >> $@
+
+all: edit save
+clean:
+	rm -f edit save
+
+install: edit
+	cp edit /var/www/cgi-bin/
+	cp edit.html /var/www/htdocs/
+	cp style.css /var/www/htdocs/
+	cp marked.js /var/www/htdocs/
+
+edit.o: edit.c
+	$(CC) -c $(CFLAGS) -I../cgiparse -o $@ edit.c
+
+edit: edit.o
+	gcc -static -o $@ edit.o -L../cgiparse -lcgi
+
+save.o: save.c
+	$(CC) -c $(CFLAGS) -I../cgiparse -o $@ save.c
+
+save: save.o
+	gcc -static -o $@ save.o -L../cgiparse -lcgi
