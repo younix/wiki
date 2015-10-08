@@ -10,9 +10,12 @@ clean:
 
 install: edit
 	cp edit /var/www/cgi-bin/
+	cp save /var/www/cgi-bin/
 	cp edit.html /var/www/htdocs/
 	cp style.css /var/www/htdocs/
 	cp marked.js /var/www/htdocs/
+	cp head.html /var/www/wiki/
+	cp foot.html /var/www/wiki/
 
 edit.o: edit.c
 	$(CC) -c $(CFLAGS) -I../cgiparse -o $@ edit.c

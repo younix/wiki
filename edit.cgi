@@ -2,4 +2,4 @@
 
 MD=md/index.md
 
-cat template/webedit.html | sed -e "/__MD_SRC__/r $MD"
+sed -e '/__MD_SRC__/ {' -e "r $MD" -e 'd' -e '}' template/webedit.html
