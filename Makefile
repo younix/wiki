@@ -6,25 +6,27 @@ CFLAGS=-std=c99 -pedantic -Wall -Wextra
 
 all: edit save
 clean:
-	rm -f edit save
+	rm -f edit save *.o
 
-install: edit
+install: edit save
 	cp edit /var/www/cgi-bin/
 	cp save /var/www/cgi-bin/
-	cp edit.html /var/www/htdocs/
 	cp style.css /var/www/htdocs/
 	cp marked.js /var/www/htdocs/
-	cp head.html /var/www/wiki/
-	cp foot.html /var/www/wiki/
+	cp edit.html /var/www/wiki/
+	cp page.html /var/www/wiki/
+
+util.o: util.c util.h
+	$(CC) -c $(CFLAGS) -o $@ util.c
 
 edit.o: edit.c
 	$(CC) -c $(CFLAGS) -I../cgiparse -o $@ edit.c
 
-edit: edit.o
-	gcc -static -o $@ edit.o -L../cgiparse -lcgi
-
 save.o: save.c
 	$(CC) -c $(CFLAGS) -I../cgiparse -o $@ save.c
 
-save: save.o
-	gcc -static -o $@ save.o -L../cgiparse -lcgi
+edit: edit.o util.o
+	gcc -static -o $@ edit.o util.o -L../cgiparse -lcgi
+
+save: save.o util.o
+	gcc -static -o $@ save.o util.o -L../cgiparse -lcgi

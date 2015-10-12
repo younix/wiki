@@ -1,5 +1,8 @@
+#include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -9,58 +12,31 @@
 
 #include <cgi.h>
 
-static int
-append_file(char *in_file, int out)
-{
-	int in;
-	ssize_t n;
-	char buf[BUFSIZ];
+#include "util.h"
 
-	if ((in = open(in_file, O_RDONLY)) == -1)
-		return -1;
+extern struct templ templates[];
 
-	while ((n = read(in, buf, sizeof buf)) <= 0)
-		if (write(out, buf, n) < n)
-			goto err;
-
-	if (n == -1)
-		goto err;
-
-	if (close(in) == -1)
-		return -1;
-
-	return 0;
- err:
-	close(in);
-	return -1;
-}
+#define PATH_CHARSET	"abcdefghijklmnopqrstuvwxyz"	\
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"	\
+			"1234567890" "_/"
 
 static int
-convert(char *mark_file, char *html_file)
+convert(const char *mark_file, int fd)
 {
-	int fd;
 	int status;
-
-	if ((fd = open(html_file, O_WRONLY)) == -1)
-		return -1;
-
-	if (append_file("/wiki/head.html", fd) == -1)
-		return -1;
 
 	switch (fork()) {
 	case 0:
-		dup2(fd, STDOUT_FILENO);
-		execl("/bin/cmark", mark_file, NULL);
-	case -1: return -1;
-	default:
-		wait(&status);
-		if (status != 0)
-			return -1;
+		dup2(fd, STDOUT_FILENO); /* redirecting stdout to html file */
+		execl("/bin/cmark", "/bin/cmark", mark_file, NULL);
+		exit(EXIT_FAILURE);
+	case -1:
+		err(EXIT_FAILURE, "fork");
 	}
 
-	lseek(fd, 0, SEEK_END);
-	if (append_file("/wiki/foot.html", fd) == -1)
-		return -1;
+	wait(&status);
+	if (status != 0)
+		errx(EXIT_FAILURE, "mark to html conversion failed");
 
 	return 0;
 }
@@ -74,39 +50,48 @@ main(void)
 	char html_file[PATH_MAX];
 	int fd;
 
-	htmlheader();
-
-	printf("cgigetvalue\n");
+	if (dup2(STDOUT_FILENO, STDERR_FILENO) == -1)
+		printf("dup2: %s\n", strerror(errno));
 
 	if ((path = cgigetvalue("path")) == NULL)
-		return EXIT_FAILURE;
+		errx(EXIT_FAILURE, "cgigetvalue(\"path\"): NULL");
 
-	printf("cgigetvalue\n");
 	if ((content = cgigetvalue("content")) == NULL)
-		return EXIT_FAILURE;
+		errx(EXIT_FAILURE, "cgigetvalue(\"content\"): NULL");
 
-	/* path movements are forbidden */
-	if (strstr(path, "..") != NULL)
-		return EXIT_FAILURE;
+	/* check correctnes fo path */
+	if (strspn(path, PATH_CHARSET) != strlen(path))
+		errx(EXIT_FAILURE, "path contains illegal character");
 
 	snprintf(mark_file, sizeof mark_file, "/htdocs/%s.md", path);
 	snprintf(html_file, sizeof html_file, "/htdocs/%s.html", path);
 
-	printf("open\n");
+	templates[TMPL_PATH].value = path;
+	templates[TMPL_CONTENT].value = mark_file;
+
 	/* safe markdown code to source file */
-	if ((fd = open(mark_file, O_WRONLY|O_CREAT)) == -1)
-		return EXIT_FAILURE;
+	if ((fd = open(mark_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR)) == -1)
+		err(EXIT_FAILURE, "open");
 
 	if (write(fd, content, strlen(content)) == -1)
-		return EXIT_FAILURE;
+		err(EXIT_FAILURE, "write");
+
+	if (close(fd) == -1)
+		err(EXIT_FAILURE, "close");
+
+	/* create html file */
+	if ((fd = open(html_file, O_WRONLY|O_TRUNC|O_CREAT,
+	    S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
+		err(EXIT_FAILURE, "open");
+
+	if (load_template("/wiki/page.html", fd, convert) == -1)
+		errx(EXIT_FAILURE, "unable to load template");
 
 	if (close(fd) == -1)
 		return EXIT_FAILURE;
 
-	printf("convert\n");
-	convert(mark_file, html_file);
-
-	fprintf(stdout, "Location: /%s.html\r\n\r\n", path);
+	printf("Refresh: 0; url=/%s.html\n", path);
+	printf("Location: /%s.html\n\n", path);
 
 	return EXIT_SUCCESS;
 }
