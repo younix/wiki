@@ -15,44 +15,12 @@
 extern struct templ templates[];
 
 struct templ templates[] = {
-	{"_?EDIT_TIME?_"   , "a"},
-	{"_?EDIT_USER?_"   , "b"},
-	{"_?PAGE_PATH?_"   , "c"},
-	{"_?PAGE_CONTENT?_", "d"},
+	{"_?EDIT_TIME?_"   , ""},
+	{"_?EDIT_USER?_"   , ""},
+	{"_?PAGE_PATH?_"   , ""},
+	{"_?PAGE_CONTENT?_", ""},
 	{NULL, NULL},
 };
-
-#if 0
-static int
-write_file(char *file, FILE *fh, int fd)
-{
-	char *content;
-	struct stat s;
-
-	if ((fd = open(file, O_RDONLY)) == -1)
-		return -1;
-
-	if (fstat(fd, &s) == -1)
-		return -1;
-
-	content = mmap(NULL, s.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (content == MAP_FAILED)
-		return -1;
-
-	if (fh == NULL) {
-		if (write(fd, content, s.st_size) == -1)
-			return -1;
-	} else {
-		if (fwrite(content, s.st_size, 1, stdout) != s.st_size)
-			return -1;
-	}
-
-	if (close(fd) == -1)
-		return -1;
-
-	return 0;
-}
-#endif
 
 int
 load_template(const char *file, int out,
@@ -62,13 +30,11 @@ load_template(const char *file, int out,
 	char buf[BUFSIZ];
 
 	if ((fh = fopen(file, "r")) == NULL)
-		goto err;
+		err(EXIT_FAILURE, "fopen");
 
 	while (fgets(buf, sizeof buf, fh) != NULL) {
 		char *tag = NULL;
 		char *line = buf;
-
-//	puts("blub!!!");
 
  again:
 		/* if buf does not contains a tag, just write the whole buf */
@@ -105,11 +71,7 @@ load_template(const char *file, int out,
 	}
 
 	if (fclose(fh) == EOF)
-		goto err;
+		err(EXIT_FAILURE, "fclose");
 
 	return 0;
-
- err:
-	printf("error: %s\n", strerror(errno));
-	return -1;
 }
