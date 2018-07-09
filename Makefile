@@ -12,7 +12,8 @@ install: edit save
 	cp edit /var/www/cgi-bin/
 	cp save /var/www/cgi-bin/
 	cp style.css /var/www/htdocs/
-	cp marked.js /var/www/htdocs/
+	cp edit.css /var/www/htdocs/
+	cp commonmark.js /var/www/htdocs/
 	cp edit.html /var/www/wiki/
 	cp page.html /var/www/wiki/
 

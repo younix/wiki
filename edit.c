@@ -13,7 +13,7 @@
 extern struct templ templates[];
 
 static int
-new_put_file(const char *file, int out)
+put_file(const char *file, int out)
 {
 	FILE *in;
 	size_t n;
@@ -58,8 +58,7 @@ main(void)
 	htmlheader();
 	fflush(stdout);
 
-	if (load_template("/wiki/edit.html", STDOUT_FILENO, new_put_file)
-	    == -1)
+	if (load_template("/wiki/edit.html", STDOUT_FILENO, put_file) == -1)
 		errx(EXIT_FAILURE, "unable to load template");
 
 	return EXIT_SUCCESS;

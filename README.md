@@ -6,3 +6,12 @@ wiki
 ## used tools
  * commonmark.sj
  * cmark
+
+## file names
+ * [[:alnum:]_]+
+
+## Features
+ * live rendering
+ * version control
+ * hierarchic folders
+ * client-certificate authentication
