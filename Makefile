@@ -7,7 +7,7 @@ all: edit save
 clean:
 	rm -f edit save *.o
 
-install: edit save
+install: all
 	cp edit ${CGIBIN}
 	cp save ${CGIBIN}
 	cp style.css ${HTDOCS}
