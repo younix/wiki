@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>WebEdit</title>
+	<title>edit - @@name@@</title>
 	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 	<meta charset="utf-8" />
 	<link rel="stylesheet" type="text/css" href="/edit.css" />
@@ -12,12 +12,12 @@
 <div><a href="">preview</a> <a href="">source</a></div>
 
 <div id="main">
-	<h1>WebEdit</h1>
+	<h1>WebEdit - @@name@@</h1>
 	<form action="/cgi-bin/save" method="post"
 	    enctype="application/x-www-form-urlencoded">
-		<input type="hidden" name="path" value="_?PAGE_PATH?_" />
+		<input type="hidden" name="path" value="@@name@@" />
 		<textarea id="editor" name="content"
-		    onkeyup="view(this.value)">_?PAGE_CONTENT?_</textarea>
+		    onkeyup="view(this.value)">@@source@@</textarea>
 		<input type="submit" />
 	</form>
 	<div id="viewer"></div>

@@ -58,7 +58,7 @@ main(void)
 	htmlheader();
 	fflush(stdout);
 
-	if (load_template("/wiki/edit.html", STDOUT_FILENO, put_file) == -1)
+	if (load_template("/var/www/wiki/edit.html", STDOUT_FILENO, put_file) == -1)
 		errx(EXIT_FAILURE, "unable to load template");
 
 	return EXIT_SUCCESS;
