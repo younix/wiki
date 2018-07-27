@@ -10,6 +10,8 @@
 #include <kcgi.h>
 #include <kcgihtml.h>
 
+#include "util.h"
+
 enum keyn { KEY_NAME, KEY_SRC, KEY_MAX };
 const char *const keys[KEY_MAX] = { "name", "source" };
 char *pathstr = NULL;
@@ -52,25 +54,20 @@ main(void)
 	struct kvalid key[1] = {{ kvalid_string, "path" }};
 	struct ktemplate t = { keys, KEY_MAX, &r, template };
 	const char *page = "index";
-	char buf[BUFSIZ];
 
 	memset(&r, 0, sizeof r);
 
 	if (KCGI_OK != khttp_parse(&r, key, 2, &page, 1, 0))
-		return(EXIT_FAILURE);
+		return EXIT_FAILURE;
+
+	/* validate variable */
+	if ((path = r.fieldmap[0]) != NULL && check_path(path->val))
+		asprintf(&pathstr, "../htdocs/%s.md", path->val);
 
 	/* start response */
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_HTML]);
 	khttp_body(&r);
-
-	/* validate variable */
-	if ((path = r.fieldmap[0]) != NULL) {
-		snprintf(buf, sizeof buf, "file: %s\nsize: %zu\nval: %s\n",
-		    path->key, path->valsz, path->val);
-		khttp_puts(&r, buf);
-		asprintf(&pathstr, "../htdocs/%s", path->val);
-	}
 
 	khttp_template(&r, &t, "../assets/edit.html");
 
