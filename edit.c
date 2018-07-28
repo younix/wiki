@@ -15,6 +15,7 @@
 enum keyn { KEY_NAME, KEY_SRC, KEY_MAX };
 const char *const keys[KEY_MAX] = { "name", "source" };
 char *pathstr = NULL;
+char *name = NULL;
 
 static int
 template(size_t index, void *arg)
@@ -26,7 +27,7 @@ template(size_t index, void *arg)
 
 	switch (index) {
 	case KEY_NAME:
-		khttp_puts(r, "name");
+		khttp_puts(r, name);
 		break;
 	case KEY_SRC:
 		if (pathstr == NULL || *pathstr == '\0')
@@ -55,14 +56,14 @@ main(void)
 	struct ktemplate t = { keys, KEY_MAX, &r, template };
 	const char *page = "index";
 
-	memset(&r, 0, sizeof r);
-
 	if (KCGI_OK != khttp_parse(&r, key, 2, &page, 1, 0))
 		return EXIT_FAILURE;
 
 	/* validate variable */
-	if ((path = r.fieldmap[0]) != NULL && check_path(path->val))
+	if ((path = r.fieldmap[0]) != NULL && check_path(path->val)) {
 		asprintf(&pathstr, "../htdocs/%s.md", path->val);
+		name = path->val;
+	}
 
 	/* start response */
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);

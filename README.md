@@ -10,8 +10,12 @@ wiki
 ## file names
  * [[:alnum:]_]+
 
+## Requirements
+ - kcgi
+ - commonmark
+
 ## Features
- * live rendering
+ - live rendering
 
 # TODO
  - Revision Control

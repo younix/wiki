@@ -1,3 +1,6 @@
+#include <sys/stat.h>
+
+#include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -23,7 +26,6 @@ main(void)
 		{ kvalid_string, "content" }
 	};
 	const char *page = "index";
-	char buf[BUFSIZ];
 	int fd;
 	char pathstr[PATH_MAX];
 
@@ -32,34 +34,40 @@ main(void)
 	if (KCGI_OK != khttp_parse(&r, key, 2, &page, 1, 0))
 		return(EXIT_FAILURE);
 
+	/* validate variable */
+	if ((path = r.fieldmap[0]) != NULL && check_path(path->val))
+		snprintf(pathstr, sizeof pathstr, "../htdocs/%s.md", path->val);
+
+	if ((content = r.fieldmap[1]) == NULL)
+		goto out;
+
+	if (pathstr[0] == '\0' || content == NULL)
+		goto out;
+
+	if ((fd = open(pathstr, O_WRONLY|O_TRUNC,
+	    S_IRUSR|S_IWUSR|S_IRWXG|S_IRGRP)) == -1)
+		goto err;
+
+	if (write(fd, content->val, content->valsz) == -1)
+		goto err;
+
+	if (close(fd) == -1)
+		goto err;
+
+	/* TODO: run make */
+	/* TODO: forward */
+
 	/* start response */
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
 	khttp_body(&r);
 
-	/* validate variable */
-	if ((path = r.fieldmap[0]) != NULL) {
-		snprintf(buf, sizeof buf, "file: %s\nsize: %zu\nval: %s\n",
-		    path->key, path->valsz, path->val);
-		khttp_puts(&r, buf);
-		if (check_path(path->val))
-			snprintf(pathstr, sizeof pathstr,
-			    "../htdocs/%s.md", path->val);
-	}
-
-	if ((content = r.fieldmap[1]) != NULL) {
-		snprintf(buf, sizeof buf, "file: %s\nsize: %zu\nval: %s\n",
-		    content->key, content->valsz, content->val);
-		khttp_puts(&r, buf);
-	}
-
-	if (path == NULL || content == NULL)
-		return EXIT_FAILURE;
-
-	if ((fd = open(path->val, O_WRONLY|O_TRUNC)) != -1)
-		return EXIT_FAILURE;
-
+ out:
 	khttp_free(&r);
+
+	return EXIT_SUCCESS;
+ err:
+	kutil_err(&r, "save", "errno: %s\n",  strerror(errno));
 
 	return EXIT_SUCCESS;
 }

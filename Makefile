@@ -8,15 +8,15 @@ clean:
 	rm -f edit save *.o
 
 install: all
-	cp kedit ${CGIBIN}
-	cp ksave ${CGIBIN}
+	cp edit ${CGIBIN}
+	cp save ${CGIBIN}
 	cp style.css ${HTDOCS}
 	cp edit.css ${HTDOCS}
 	cp commonmark.js ${HTDOCS}
 	mkdir -p ${ASSETS}
 	cp edit.html ${ASSETS}
 	cp page.html ${ASSETS}
-	cp data/Makefile ${ASSETS}
+	cp wiki.mk ${ASSETS}
 
 util.o: util.c util.h
 	$(CC) -c $(CFLAGS) -o $@ util.c
