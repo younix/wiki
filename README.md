@@ -14,6 +14,8 @@ wiki
  * live rendering
 
 # TODO
- * version control
- * hierarchic folders
- * client-certificate authentication
+ - Revision Control
+ - Subfolder
+ - client-certificate authentication
+ - Static Preview
+ - Includes

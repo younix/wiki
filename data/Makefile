@@ -10,6 +10,3 @@ clean:
 .md.html:
 	./nav.sh $< > $@
 	smu -n $< > $@
-	# copy to read-only folder
-	mkdir -p `dirname ${@:S/^md/html/}`
-	cp $@ ${@:S/^md/html/}
