@@ -3,9 +3,9 @@ include config.mk
 .PHONY: all install clean
 .SUFFIXES: .md .html
 
-all: kedit ksave
+all: edit save
 clean:
-	rm -f kedit ksave edit save *.o
+	rm -f edit save *.o
 
 install: all
 	cp kedit ${CGIBIN}
@@ -21,14 +21,14 @@ install: all
 util.o: util.c util.h
 	$(CC) -c $(CFLAGS) -o $@ util.c
 
-kedit.o: kedit.c
-	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ kedit.c
+edit.o: edit.c
+	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ edit.c
 
-ksave.o: ksave.c
-	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ ksave.c
+save.o: save.c
+	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ save.c
 
-kedit: kedit.o util.o
-	$(CC) -static -o $@ kedit.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
+edit: edit.o util.o
+	$(CC) -static -o $@ edit.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
 
-ksave: ksave.o util.o
-	$(CC) -static -o $@ ksave.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
+save: save.o util.o
+	$(CC) -static -o $@ save.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz

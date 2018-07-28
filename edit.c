@@ -1,65 +1,77 @@
-#include <err.h>
-#include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <cgi.h>
+#include <kcgi.h>
+#include <kcgihtml.h>
 
 #include "util.h"
 
-extern struct templ templates[];
+enum keyn { KEY_NAME, KEY_SRC, KEY_MAX };
+const char *const keys[KEY_MAX] = { "name", "source" };
+char *pathstr = NULL;
 
 static int
-put_file(const char *file, int out)
+template(size_t index, void *arg)
 {
-	FILE *in;
-	size_t n;
 	char buf[BUFSIZ];
+	int fd;
+	ssize_t sz;
+	struct kreq *r = arg;
 
-	if ((in = fopen(file, "r")) == NULL) {
-		if (errno == ENOENT)
-			return 0;
-		return -1;
+	switch (index) {
+	case KEY_NAME:
+		khttp_puts(r, "name");
+		break;
+	case KEY_SRC:
+		if (pathstr == NULL || *pathstr == '\0')
+			break;
+		if ((fd = open(pathstr, O_RDONLY)) == -1)
+			break;
+
+		while ((sz = read(fd, buf, sizeof buf)) > 0)
+			khttp_write(r, buf, sz);
+
+		close(fd);
+		break;
+	default:
+		return 0;
 	}
 
-	while ((n = fread(buf, sizeof *buf, BUFSIZ, in)) > 0)
-		if (write(out, buf, n) == -1)
-			return -1;
-
-	if (fclose(in) == EOF)
-		return -1;
-
-	return 0;
+	return 1;
 }
 
 int
 main(void)
 {
-	const char *path;
-	char file[PATH_MAX];
+	struct kreq r;
+	struct kpair *path;
+	struct kvalid key[1] = {{ kvalid_string, "path" }};
+	struct ktemplate t = { keys, KEY_MAX, &r, template };
+	const char *page = "index";
 
-	if (dup2(STDOUT_FILENO, STDERR_FILENO) == -1)
-		printf("dup2: %s\n", strerror(errno));
+	memset(&r, 0, sizeof r);
 
-	if ((path = cgigetvalue("path")) == NULL)
-		errx(EXIT_FAILURE, "path not found");
+	if (KCGI_OK != khttp_parse(&r, key, 2, &page, 1, 0))
+		return EXIT_FAILURE;
 
-	if (strstr(path, "..") != NULL)
-		errx(EXIT_FAILURE, "ilegal path");
+	/* validate variable */
+	if ((path = r.fieldmap[0]) != NULL && check_path(path->val))
+		asprintf(&pathstr, "../htdocs/%s.md", path->val);
 
-	snprintf(file, sizeof file, "/htdocs/%s.md", path);
+	/* start response */
+	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_HTML]);
+	khttp_body(&r);
 
-	templates[TMPL_PATH].value = path;
-	templates[TMPL_CONTENT].value = file;
+	khttp_template(&r, &t, "../assets/edit.html");
 
-	htmlheader();
-	fflush(stdout);
-
-	if (load_template("/var/www/wiki/edit.html", STDOUT_FILENO, put_file) == -1)
-		errx(EXIT_FAILURE, "unable to load template");
+	khttp_free(&r);
 
 	return EXIT_SUCCESS;
 }

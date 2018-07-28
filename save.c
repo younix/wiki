@@ -1,97 +1,65 @@
-#include <sys/stat.h>
-#include <sys/wait.h>
-
-#include <err.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <cgi.h>
+#include <kcgi.h>
+#include <kcgihtml.h>
 
 #include "util.h"
-
-extern struct templ templates[];
-
-#define PATH_CHARSET	"abcdefghijklmnopqrstuvwxyz"	\
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"	\
-			"1234567890" "_/"
-
-static int
-convert(const char *mark_file, int fd)
-{
-	int status;
-
-	switch (fork()) {
-	case 0:
-		dup2(fd, STDOUT_FILENO); /* redirecting stdout to html file */
-		execl("/bin/cmark", "/bin/cmark", mark_file, NULL);
-		exit(EXIT_FAILURE);
-	case -1:
-		err(EXIT_FAILURE, "fork");
-	}
-
-	wait(&status);
-	if (status != 0)
-		errx(EXIT_FAILURE, "mark to html conversion failed");
-
-	return 0;
-}
 
 int
 main(void)
 {
-	const char *path;
-	const char *content;
-	char mark_file[PATH_MAX];
-	char html_file[PATH_MAX];
+	struct kreq r;
+	struct kpair *path;
+	struct kpair *content;
+	struct kvalid key[2] = {
+		{ kvalid_string, "path" },
+		{ kvalid_string, "content" }
+	};
+	const char *page = "index";
+	char buf[BUFSIZ];
 	int fd;
+	char pathstr[PATH_MAX];
 
-	if (dup2(STDOUT_FILENO, STDERR_FILENO) == -1)
-		printf("dup2: %s\n", strerror(errno));
+	memset(&r, 0, sizeof r);
 
-	if ((path = cgigetvalue("path")) == NULL)
-		errx(EXIT_FAILURE, "cgigetvalue(\"path\"): NULL");
+	if (KCGI_OK != khttp_parse(&r, key, 2, &page, 1, 0))
+		return(EXIT_FAILURE);
 
-	if ((content = cgigetvalue("content")) == NULL)
-		errx(EXIT_FAILURE, "cgigetvalue(\"content\"): NULL");
+	/* start response */
+	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+	khttp_body(&r);
 
-	/* check correctnes fo path */
-	if (strspn(path, PATH_CHARSET) != strlen(path))
-		errx(EXIT_FAILURE, "path contains illegal character");
+	/* validate variable */
+	if ((path = r.fieldmap[0]) != NULL) {
+		snprintf(buf, sizeof buf, "file: %s\nsize: %zu\nval: %s\n",
+		    path->key, path->valsz, path->val);
+		khttp_puts(&r, buf);
+		if (check_path(path->val))
+			snprintf(pathstr, sizeof pathstr,
+			    "../htdocs/%s.md", path->val);
+	}
 
-	snprintf(mark_file, sizeof mark_file, "/htdocs/%s.md", path);
-	snprintf(html_file, sizeof html_file, "/htdocs/%s.html", path);
+	if ((content = r.fieldmap[1]) != NULL) {
+		snprintf(buf, sizeof buf, "file: %s\nsize: %zu\nval: %s\n",
+		    content->key, content->valsz, content->val);
+		khttp_puts(&r, buf);
+	}
 
-	templates[TMPL_PATH].value = path;
-	templates[TMPL_CONTENT].value = mark_file;
-
-	/* safe markdown code to source file */
-	if ((fd = open(mark_file, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR)) == -1)
-		err(EXIT_FAILURE, "open");
-
-	if (write(fd, content, strlen(content)) == -1)
-		err(EXIT_FAILURE, "write");
-
-	if (close(fd) == -1)
-		err(EXIT_FAILURE, "close");
-
-	/* create html file */
-	if ((fd = open(html_file, O_WRONLY|O_TRUNC|O_CREAT,
-	    S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH)) == -1)
-		err(EXIT_FAILURE, "open");
-
-	if (load_template("/wiki/page.html", fd, convert) == -1)
-		errx(EXIT_FAILURE, "unable to load template");
-
-	if (close(fd) == -1)
+	if (path == NULL || content == NULL)
 		return EXIT_FAILURE;
 
-	printf("Refresh: 0; url=/%s.html\n", path);
-	printf("Location: /%s.html\n\n", path);
+	if ((fd = open(path->val, O_WRONLY|O_TRUNC)) != -1)
+		return EXIT_FAILURE;
+
+	khttp_free(&r);
 
 	return EXIT_SUCCESS;
 }
