@@ -1,12 +1,11 @@
-MD != find md -name '../htdocs/*.md'
+MD != find ../htdocs -name '*.md'
 HTML = ${MD:S/md$/html/}
 
 .PHONY: all clean
 all: ${HTML}
 clean:
-	rm -rf html ${HTML}
+	rm -rf ${HTML}
 
 .SUFFIXES: .md .html
 .md.html:
-	./nav.sh $< > $@
-	smu -n $< > $@
+	cmark $< > $@

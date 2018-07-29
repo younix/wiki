@@ -54,20 +54,24 @@ main(void)
 	if (close(fd) == -1)
 		goto err;
 
-	/* TODO: run make */
-	/* TODO: forward */
+	/* rebuild static html files */
+	system("make -C ../assets -f ../assets/wiki.mk");
 
-	/* start response */
+	/* forward */
+	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_303]);
+	khttp_head(&r, kresps[KRESP_LOCATION], "/%s.html", path->val);
+	khttp_free(&r);
+	return EXIT_SUCCESS;
+
+ out:
+	/* display error message */
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
 	khttp_body(&r);
-
- out:
 	khttp_free(&r);
-
 	return EXIT_SUCCESS;
+
  err:
 	kutil_err(&r, "save", "errno: %s\n",  strerror(errno));
-
 	return EXIT_SUCCESS;
 }
