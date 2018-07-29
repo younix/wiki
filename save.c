@@ -44,7 +44,7 @@ main(void)
 	if (pathstr[0] == '\0' || content == NULL)
 		goto out;
 
-	if ((fd = open(pathstr, O_WRONLY|O_TRUNC,
+	if ((fd = open(pathstr, O_WRONLY|O_CREAT|O_TRUNC,
 	    S_IRUSR|S_IWUSR|S_IRWXG|S_IRGRP)) == -1)
 		goto err;
 
@@ -60,6 +60,7 @@ main(void)
 	/* forward */
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_303]);
 	khttp_head(&r, kresps[KRESP_LOCATION], "/%s.html", path->val);
+	khttp_body(&r);
 	khttp_free(&r);
 	return EXIT_SUCCESS;
 
@@ -68,6 +69,7 @@ main(void)
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
 	khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
 	khttp_body(&r);
+	khttp_puts(&r, "error");
 	khttp_free(&r);
 	return EXIT_SUCCESS;
 
