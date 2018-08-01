@@ -8,4 +8,4 @@ clean:
 
 .SUFFIXES: .md .html
 .md.html:
-	cmark $< > $@
+	./md2html.sh $@

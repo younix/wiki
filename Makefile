@@ -15,8 +15,8 @@ install: all
 	cp commonmark.js ${HTDOCS}
 	mkdir -p ${ASSETS}
 	cp edit.html ${ASSETS}
-	cp page.html ${ASSETS}
 	cp wiki.mk ${ASSETS}
+	cp md2html.sh ${ASSETS}
 
 util.o: util.c util.h
 	$(CC) -c $(CFLAGS) -o $@ util.c
