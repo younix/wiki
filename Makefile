@@ -3,13 +3,14 @@ include config.mk
 .PHONY: all install clean
 .SUFFIXES: .md .html
 
-all: edit save
+all: edit.cgi save.cgi env.cgi
 clean:
 	rm -f edit save *.o
 
 install: all
-	cp edit ${CGIBIN}
-	cp save ${CGIBIN}
+	cp edit.cgi ${HTDOCS}
+	cp save.cgi ${HTDOCS}
+	cp env.cgi ${HTDOCS}
 	cp style.css ${HTDOCS}
 	cp edit.css ${HTDOCS}
 	cp commonmark.js ${HTDOCS}
@@ -27,8 +28,14 @@ edit.o: edit.c
 save.o: save.c
 	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ save.c
 
-edit: edit.o util.o
+env.o: env.c
+	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ env.c -g
+
+edit.cgi: edit.o util.o
 	$(CC) -static -o $@ edit.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
 
-save: save.o util.o
+save.cgi: save.o util.o
 	$(CC) -static -o $@ save.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
+
+env.cgi: env.o
+	$(CC) -static -o $@ env.o -L/usr/local/lib -lkcgihtml -lkcgi -lz -g
