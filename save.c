@@ -55,7 +55,8 @@ main(void)
 		goto err;
 
 	/* rebuild static html files */
-	system("make -C ../assets -f ../assets/wiki.mk");
+	if (system("make -C ../assets -f ../assets/wiki.mk"))
+		goto err;
 
 	/* forward */
 	khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_303]);
