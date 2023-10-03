@@ -13,9 +13,9 @@
 
 <div id="main">
 	<h1>WebEdit - @@name@@</h1>
-	<form action="/cgi-bin/save" method="post"
+	<form action="/save.cgi" method="post"
 	    enctype="application/x-www-form-urlencoded">
-		<input type="hidden" name="path" value="@@name@@" />
+		<input type="text" name="path" value="@@name@@" />
 		<textarea id="editor" name="content"
 		    onkeyup="view(this.value)">@@source@@</textarea>
 		<input type="submit" />
