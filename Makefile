@@ -5,7 +5,7 @@ include config.mk
 
 all: edit.cgi save.cgi env.cgi
 clean:
-	rm -f edit save *.o
+	rm -f *.o *.cgi
 
 install: all
 	install -o www -g www -m ugo=rx edit.cgi ${HTDOCS}
