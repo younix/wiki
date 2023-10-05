@@ -8,16 +8,16 @@ clean:
 	rm -f edit save *.o
 
 install: all
-	install edit.cgi ${HTDOCS}
-	install save.cgi ${HTDOCS}
-	install env.cgi ${HTDOCS}
-	install -m 0444 style.css ${HTDOCS}
-	install -m 0444 edit.css ${HTDOCS}
-	install -m 0444 commonmark.js ${HTDOCS}
+	install -o www -g www -m ugo=rx edit.cgi ${HTDOCS}
+	install -o www -g www -m ugo=rx save.cgi ${HTDOCS}
+	install -o www -g www -m ugo=rx env.cgi ${HTDOCS}
+	install -o www -g www -m ugo=r style.css ${HTDOCS}
+	install -o www -g www -m ugo=r edit.css ${HTDOCS}
+	install -o www -g www -m ugo=r commonmark.js ${HTDOCS}
 	mkdir -p ${ASSETS}
-	install -m 0444 edit.html ${ASSETS}
-	install -m 0444 wiki.mk ${ASSETS}
-	install -m 0444 md2html.sh ${ASSETS}
+	install -o www -g www -m ugo=r edit.html ${ASSETS}
+	install -o www -g www -m ugo=r wiki.mk ${ASSETS}
+	install -o www -g www -m ugo=r md2html.sh ${ASSETS}
 
 util.o: util.c util.h
 	$(CC) -c $(CFLAGS) -o $@ util.c
