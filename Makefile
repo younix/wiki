@@ -16,6 +16,7 @@ install: all
 	install -o www -g www -m ugo=r commonmark.js ${HTDOCS}
 	mkdir -p ${ASSETS}
 	install -o www -g www -m ugo=r edit.html ${ASSETS}
+	install -o www -g www -m ugo=r page.html ${ASSETS}
 	install -o www -g www -m ugo=r wiki.mk ${ASSETS}
 	install -o www -g www -m ugo=r md2html.sh ${ASSETS}
 
@@ -31,11 +32,15 @@ save.o: save.c
 env.o: env.c
 	$(CC) -c $(CFLAGS) -I/usr/local/include -o $@ env.c -g
 
+temp: temp.c
+	$(CC) -o $@ temp.c $(CFLAGS) -I/usr/local/include -L/usr/local/lib -lkcgi -lz
+
+
 edit.cgi: edit.o util.o
 	$(CC) -static -o $@ edit.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
 
 save.cgi: save.o util.o
-	$(CC) -static -o $@ save.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz
+	$(CC) -static -o $@ save.o util.o -L/usr/local/lib -lkcgihtml -lkcgi -lz -lcmark
 
 env.cgi: env.o
 	$(CC) -static -o $@ env.o -L/usr/local/lib -lkcgihtml -lkcgi -lz -g
