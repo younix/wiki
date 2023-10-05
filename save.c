@@ -19,7 +19,7 @@
 enum keyn { KEY_NAME, KEY_NAV, KEY_HTML, KEY_MAX };
 const char *const keys[KEY_MAX] = { "name", "nav", "html" };
 
-struct args {
+struct arg {
 	int	 fd;
 	char	*name;
 	char	*nav;
@@ -41,7 +41,7 @@ werror(struct kreq *r,const char *str)
 int
 template(size_t index, void *a)
 {
-	struct args *arg = a;
+	struct arg *arg = a;
 
 	switch (index) {
 	case KEY_NAME:
@@ -66,7 +66,7 @@ template(size_t index, void *a)
 enum kcgi_err
 writer(const char *buf, size_t size, void *a)
 {
-	struct args *arg = a;
+	struct arg *arg = a;
 
 	if (write(arg->fd, buf, size) == -1)
 		return KCGI_WRITER;
@@ -88,7 +88,7 @@ main(void)
 	int fd;
 	char pathmd[PATH_MAX];
 	char pathht[PATH_MAX];
-	struct args arg;
+	struct arg arg;
 
 	memset(&r, 0, sizeof r);
 
