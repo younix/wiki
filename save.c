@@ -1,5 +1,7 @@
+#include <sys/types.h>
 #include <sys/stat.h>
 
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -39,6 +41,35 @@ werror(struct kreq *r,const char *str)
 }
 
 int
+nav(struct arg *arg)
+{
+	DIR		*dir;
+	struct dirent	*ent;
+
+	if ((dir = opendir("/htdocs")) == NULL)
+		return 0;
+
+	while ((ent = readdir(dir)) != NULL) {
+
+		if (strcmp(ent->d_name, ".") == 0 ||
+		    strcmp(ent->d_name, "..") == 0 || ent->d_namlen < 5)
+			continue;
+
+		if (strcmp(&ent->d_name[ent->d_namlen - 5], ".html") != 0)
+			continue;
+
+		/* TODO: escaping HTML characters */
+		dprintf(arg->fd, "<a href=\"%s\">%.*s</a>",
+		    ent->d_name, ent->d_namlen - 5, ent->d_name);
+	}
+
+	if (closedir(dir) == -1)
+		return 0;
+
+	return 1;
+}
+
+int
 template(size_t index, void *a)
 {
 	struct arg *arg = a;
@@ -49,8 +80,7 @@ template(size_t index, void *a)
 			return 0;
 		break;
 	case KEY_NAV:
-		if (write(arg->fd, arg->nav, strlen(arg->nav)) == -1)
-			return 0;
+			return nav(arg);
 		break;
 	case KEY_HTML:
 		if (write(arg->fd, arg->html, strlen(arg->html)) == -1)
