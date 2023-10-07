@@ -3,21 +3,26 @@ body {
 	margin: auto;
 	padding: 1em;
 	display: flex;
+
+	background-color: black;
+	color: white;
 }
 
 main {
 	float: left;
-	background-color: #eeffee;
 	width: 70%;
 }
 
 aside {
 	float: left;
-	background-color: #ffeeee;
 }
 
 hr {
 	clear: both;
+}
+
+a {
+	color: white;
 }
 
 aside a {
