@@ -10,10 +10,11 @@ body {
 
 main {
 	float: left;
-	width: 70%;
+	max-width: 20cm;
 }
 
 aside {
+	margin-right: 1em;
 	float: left;
 }
 
