@@ -46,7 +46,7 @@ nav(struct arg *arg)
 	DIR		*dir;
 	struct dirent	*ent;
 
-	if ((dir = opendir("/htdocs")) == NULL)
+	if ((dir = opendir("/wiki")) == NULL)
 		return 0;
 
 	while ((ent = readdir(dir)) != NULL) {
@@ -133,8 +133,8 @@ main(void)
 		arg.name = path->val;
 		arg.nav = "";
 
-		snprintf(pathmd, sizeof pathmd, "../htdocs/%s.md", arg.name);
-		snprintf(pathht, sizeof pathht, "../htdocs/%s.html", arg.name);
+		snprintf(pathmd, sizeof pathmd, "../wiki/%s.md", arg.name);
+		snprintf(pathht, sizeof pathht, "../wiki/%s.html", arg.name);
 	}
 
 	if (pathmd[0] == '\0' || pathht[0] == '\0')

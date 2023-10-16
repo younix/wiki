@@ -61,7 +61,7 @@ main(void)
 
 	/* validate variable */
 	if ((path = r.fieldmap[0]) != NULL && check_path(path->val)) {
-		asprintf(&pathstr, "/htdocs/%s.md", path->val);
+		asprintf(&pathstr, "/wiki/%s.md", path->val);
 		name = path->val;
 	}
 

@@ -8,7 +8,7 @@ clean:
 	rm -f *.o *.cgi
 
 install: all
-	install -o www -g www -m ugo=rx -d ${HTDOCS}
+	install -o www -g www -m ugo=rwx -d ${HTDOCS}
 	install -o www -g www -m ugo=rx edit.cgi ${HTDOCS}
 	install -o www -g www -m ugo=rx save.cgi ${HTDOCS}
 	install -o www -g www -m ugo=r style.css ${HTDOCS}
